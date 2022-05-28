@@ -1,3 +1,5 @@
+var AxiosError = require("../../lib/core/AxiosError");
+
 describe('transform', function () {
   beforeEach(function () {
     jasmine.Ajax.install();
@@ -64,6 +66,7 @@ describe('transform', function () {
         setTimeout(function () {
           expect(thrown).toBeTruthy();
           expect(thrown.name).toContain('SyntaxError');
+          expect(thrown.code).toEqual(AxiosError.ERR_BAD_RESPONSE);
           done();
         }, 100);
       });
@@ -171,6 +174,26 @@ describe('transform', function () {
 
     getAjaxRequest().then(function (request) {
       expect(request.requestHeaders['X-Authorization']).toEqual(token);
+      done();
+    });
+  });
+
+  it('should normalize \'content-type\' header when using a custom transformRequest', function (done) {
+    var data = {
+      foo: 'bar'
+    };
+
+    axios.post('/foo', data, {
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      transformRequest: [
+        function () {
+          return 'aa=44'
+        }
+      ]
+    });
+
+    getAjaxRequest().then(function (request) {
+      expect(request.requestHeaders['Content-Type']).toEqual('application/x-www-form-urlencoded');
       done();
     });
   });
